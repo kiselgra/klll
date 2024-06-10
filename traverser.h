@@ -83,3 +83,15 @@ public:
 	void between_subs(node *, int at)  override {}
 	void leave(list *) override {}
 };
+
+class resolve_names : public visitor {
+	std::vector<var_definition*> vars;
+	std::vector<fun_definition*> funs;
+public:
+	// what to record
+	bool enter(var_definition *) override;
+	bool enter(fun_definition *) override;
+	void leave(fun_definition *) override;
+	// where to record
+	bool enter(name *) override;
+};

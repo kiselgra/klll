@@ -24,9 +24,17 @@ int main(int argc, char **argv) {
 	tree->traverse(&pt);
 	
 	cout << endl << " - - - - - - - - - - - - " << endl;
+	cout << "finding builtins..." << endl;
 
 	find_built_ins bi;
 	tree->traverse(&bi);
 
+	cout << endl << " - - - - - - - - - - - - " << endl;
+	cout << "resolving names..." << endl;
+	resolve_names rn;
+	tree->traverse(&rn);
+
 	tree->traverse(&pt);
+
+	delete tree;
 }

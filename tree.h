@@ -8,16 +8,13 @@
 class visitor;
 
 struct node {
-	node *parent = nullptr;
-	node(node *parent = nullptr) : parent(parent) {
-	}
 	virtual ~node() {}
 	
 	virtual void traverse(visitor *v) = 0;
 };
 
 struct block : public node {
-	~block() {}
+	~block() { for (node *n : subnodes) delete n; }
 	std::vector<node*> subnodes;
 	
 	void traverse(visitor *v) override;
@@ -38,8 +35,11 @@ struct integer : public literal {
 	void traverse(visitor *v) override;
 };
 
+struct definition;
+
 struct name : public literal {
 	std::string value;
+	::definition *definition = nullptr;
 	
 	name(const token &t) : literal(t), value(t.id()) {}
 	name(const std::string &value) : value(value) {}
@@ -48,6 +48,7 @@ struct name : public literal {
 };
 
 struct list : public node {
+	~list() { for (node *n : elements) delete n; }
 	std::vector<node*> elements;
 	
 	void traverse(visitor *v) override;
@@ -62,6 +63,7 @@ struct list : public node {
 struct definition : public node {
 	::name *name;
 	definition(::name *name) : name(name) {}
+	~definition() { delete name; }
 };
 
 struct var_definition : public definition {
@@ -69,12 +71,14 @@ struct var_definition : public definition {
 	void traverse(visitor *v) override;
 
 	var_definition(::name *name, node *value) : definition(name), value(value) {}
+	~var_definition() { delete value; }
 };
 
 struct fun_definition : public definition {
-	std::vector<::name*> params;
+	std::vector<::var_definition*> params;
 	block *body = nullptr;
 	void traverse(visitor *v) override;
 
 	fun_definition(::name *name) : definition(name) {}
+	~fun_definition() { delete body; for (node *n : params) delete n; }
 };
