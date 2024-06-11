@@ -3,6 +3,7 @@
 #include "tree.h"
 
 #include <iostream>
+#include <map>
 
 class visitor {
 public:
@@ -16,6 +17,8 @@ public:
 
 	virtual bool enter(block *n)          { return enter((node*)n); }
 	virtual void leave(block *n)          {}
+	virtual bool enter(toplevel_block *n) { return enter((node*)n); }
+	virtual void leave(toplevel_block *n) {}
 
 	virtual bool enter(list *n)           { return enter((node*)n); }
 	virtual void leave(list *n)           {}
@@ -24,6 +27,12 @@ public:
 	virtual void leave(var_definition *n) {}
 	virtual bool enter(fun_definition *n) { return enter((node*)n); }
 	virtual void leave(fun_definition *n) {}
+	
+	virtual bool enter(fun_call *n)       { return enter((node*)n); }
+	virtual void leave(fun_call *n)       {}
+	
+	virtual bool enter(branch *n)         { return enter((node*)n); }
+	virtual void leave(branch *n)         {}
 };
 
 class print_tree : public visitor {
@@ -62,6 +71,8 @@ public:
 	bool enter(integer *) override;
 	bool enter(name *)    override;
 
+	bool enter(toplevel_block *)  override;
+	void leave(toplevel_block *)  override;
 	bool enter(block *) override;
 	void leave(block *) override;
 
@@ -72,6 +83,12 @@ public:
 	void leave(var_definition *) override;
 	bool enter(fun_definition *) override;
 	void leave(fun_definition *) override;
+	
+	bool enter(fun_call *) override;
+	void leave(fun_call *) override;
+
+	bool enter(branch *) override;
+	void leave(branch *) override;
 };
 
 class find_built_ins : public visitor {
@@ -79,15 +96,21 @@ public:
 // 	bool enter(integer *) override {}
 // 	bool enter(name *)    override {}
 
-	bool enter(block *)  override;
+	bool enter(toplevel_block *)  override;
+	bool enter(block *)           override;
+	bool enter(list *)            override;
+	bool enter(branch *)          override;
+	bool enter(var_definition *)  override;
+	bool enter(fun_call *)        override;
 	void between_subs(node *, int at)  override {}
-	void leave(list *) override {}
 };
 
 class resolve_names : public visitor {
-	std::vector<var_definition*> vars;
-	std::vector<fun_definition*> funs;
+	std::vector<definition*> definitions;
+	std::map<std::string, builtin_function*> builtin_functions;
 public:
+	resolve_names();
+	~resolve_names();
 	// what to record
 	bool enter(var_definition *) override;
 	bool enter(fun_definition *) override;

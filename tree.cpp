@@ -25,6 +25,16 @@ void block::traverse(visitor *v) {
 	}
 }
 
+void toplevel_block::traverse(visitor *v) {
+	if (v->enter(this)) {
+		for (int i = 0; i < subnodes.size(); ++i) {
+			if (i != 0) v->between_subs(this, i);
+			subnodes[i]->traverse(v);
+		}
+		v->leave(this);
+	}
+}
+
 void list::traverse(visitor *v) {
 	if (v->enter(this)) {
 		for (int i = 0; i < elements.size(); ++i) {
@@ -37,21 +47,41 @@ void list::traverse(visitor *v) {
 
 void var_definition::traverse(visitor *v) {
 	if (v->enter(this)) {
-		name->traverse(v);
-		value->traverse(v);
+		if (value)
+			value->traverse(v);
 		v->leave(this);
 	}
 }
 
 void fun_definition::traverse(visitor *v) {
 	if (v->enter(this)) {
-		name->traverse(v);
 		for (int i = 0; i < params.size(); ++i) {
 			v->between_subs(this, i+1);
 			params[i]->traverse(v);
 		}
 		v->between_subs(this, params.size()+1);
 		body->traverse(v);
+		v->leave(this);
+	}
+}
+
+void fun_call::traverse(visitor *v) {
+	if (v->enter(this)) {
+		name->traverse(v);
+		for (int i = 0; i < args.size(); ++i) {
+			v->between_subs(this, i+1);
+			args[i]->traverse(v);
+		}
+		v->leave(this);
+	}
+}
+
+void branch::traverse(visitor *v) {
+	if (v->enter(this)) {
+		condition->traverse(v);
+		true_case->traverse(v);
+		if (false_case)
+			false_case->traverse(v);
 		v->leave(this);
 	}
 }
@@ -124,6 +154,17 @@ bool print_xml_tree::enter(name *n) {
 	return true;
 }
 
+bool print_xml_tree::enter(toplevel_block *l) {
+	stream << ind << "<toplevel_block>";
+	indent++;
+	return true;
+}
+
+void print_xml_tree::leave(toplevel_block *l) {
+	indent--;
+	stream << ind << "</toplevel_block>";
+}
+
 bool print_xml_tree::enter(block *l) {
 	stream << ind << "<block>";
 	indent++;
@@ -147,7 +188,7 @@ void print_xml_tree::leave(list *l) {
 }
 
 bool print_xml_tree::enter(var_definition *d) {
-	stream << ind << "<define>";
+	stream << ind << "<define name=" << d->name << ">";
 	indent++;
 	return true;
 }
@@ -158,7 +199,7 @@ void print_xml_tree::leave(var_definition *d) {
 }
 
 bool print_xml_tree::enter(fun_definition *d) {
-	stream << ind << "<define>";
+	stream << ind << "<define name=" << d->name << ">";
 	indent++;
 	return true;
 }
@@ -166,5 +207,27 @@ bool print_xml_tree::enter(fun_definition *d) {
 void print_xml_tree::leave(fun_definition *d) {
 	indent--;
 	stream << ind << "</define>";
+}
+
+bool print_xml_tree::enter(fun_call *d) {
+	stream << ind << "<fun-call>";
+	indent++;
+	return true;
+}
+
+void print_xml_tree::leave(fun_call *d) {
+	indent--;
+	stream << ind << "</fun-call>";
+}
+
+bool print_xml_tree::enter(branch *) {
+	stream << ind << "<if>";
+	indent++;
+	return true;
+}
+
+void print_xml_tree::leave(branch *) {
+	indent--;
+	stream << ind << "</if>";
 }
 

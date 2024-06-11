@@ -2,29 +2,53 @@
 #include "syntax.h"
 
 #include <cassert>
-#include <stdexcept>
+
+
+resolve_names::resolve_names() {
+#define add(X) builtin_functions[X] = new builtin_function(X)
+	add("<=");
+	add("<");
+	add(">");
+	add(">=");
+	add("=");
+	add("not");
+	add("eq");
+	add("*");
+	add("1-");
+	add("1+");
+#undef add
+};
+
+resolve_names::~resolve_names() {
+	for (auto [k,v] : builtin_functions)
+		delete v;
+}
+
 
 bool resolve_names::enter(var_definition *def) {
-	vars.push_back(def);
+	definitions.push_back(def);
 	return true;
 }
 
 bool resolve_names::enter(fun_definition *def) {
-	funs.push_back(def);
+	definitions.push_back(def);
 	return true;
 }
 
 void resolve_names::leave(fun_definition *def) {
 	for (auto p : def->params)
-		vars.pop_back();
+		definitions.pop_back();
 }
 
-// TODO syntax needs to make sure
 bool resolve_names::enter(name *n) {
-	for (int i = vars.size()-1; i >= 0; --i)
-		if (vars[i]->name->value == n->value) {
-			n->definition = vars[i];
+	for (int i = definitions.size()-1; i >= 0; --i)
+		if (definitions[i]->name == n->value) {
+			n->definition = definitions[i];
 			return true;
 		}
+	if (auto found = builtin_functions.find(n->value); found != builtin_functions.end()) {
+		n->definition = found->second;
+		return true;
+	}
 	throw syntax_error("Unbound variable " + n->value);
 }

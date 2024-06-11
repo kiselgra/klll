@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
 
 	find_built_ins bi;
 	tree->traverse(&bi);
+	tree->traverse(&pt);
 
 	cout << endl << " - - - - - - - - - - - - " << endl;
 	cout << "resolving names..." << endl;

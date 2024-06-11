@@ -7,6 +7,14 @@
 
 class visitor;
 
+//! This implements a pointer that simply refers to some data, but is not responsible for managing it.
+template<typename T> struct ref {
+	T *ptr;
+	T* operator->() { return ptr; }
+	T& operator*() { return *ptr; }
+	ref(T *t) : ptr(t) {}
+};
+
 struct node {
 	virtual ~node() {}
 	
@@ -17,6 +25,10 @@ struct block : public node {
 	~block() { for (node *n : subnodes) delete n; }
 	std::vector<node*> subnodes;
 	
+	void traverse(visitor *v) override;
+};
+
+struct toplevel_block : public block {
 	void traverse(visitor *v) override;
 };
 
@@ -39,11 +51,12 @@ struct definition;
 
 struct name : public literal {
 	std::string value;
-	::definition *definition = nullptr;
+	ref<::definition> definition = nullptr;
 	
 	name(const token &t) : literal(t), value(t.id()) {}
 	name(const std::string &value) : value(value) {}
-	
+	~name() {}
+
 	void traverse(visitor *v) override;
 };
 
@@ -61,16 +74,15 @@ struct list : public node {
  */
 
 struct definition : public node {
-	::name *name;
-	definition(::name *name) : name(name) {}
-	~definition() { delete name; }
+	std::string name;
+	definition(const std::string &name) : name(name) {}
 };
 
 struct var_definition : public definition {
 	node *value;
 	void traverse(visitor *v) override;
 
-	var_definition(::name *name, node *value) : definition(name), value(value) {}
+	var_definition(const std::string &name, node *value) : definition(name), value(value) {}
 	~var_definition() { delete value; }
 };
 
@@ -79,6 +91,27 @@ struct fun_definition : public definition {
 	block *body = nullptr;
 	void traverse(visitor *v) override;
 
-	fun_definition(::name *name) : definition(name) {}
+	fun_definition(const std::string &name) : definition(name) {}
 	~fun_definition() { delete body; for (node *n : params) delete n; }
+};
+
+struct builtin_function : public fun_definition {
+	builtin_function(const std::string &name) : fun_definition(name) {}
+};
+
+struct fun_call : public node {
+	::name *name;
+	std::vector<node*> args;
+	void traverse(visitor *v) override;
+
+	fun_call(::name *name) : name(name) {}
+	~fun_call() { delete name; for (node *n : args) delete n; }
+};
+
+struct branch : public node {
+	node *condition, *true_case, *false_case;
+	void traverse(visitor *v) override;
+
+	branch(node *condition, node *true_case, node *false_case = nullptr) : condition(condition), true_case(true_case), false_case(false_case) {}
+	~branch() { delete condition; delete true_case; delete false_case; }
 };
