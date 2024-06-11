@@ -162,7 +162,7 @@ bool print_xml_tree::enter(toplevel_block *l) {
 
 void print_xml_tree::leave(toplevel_block *l) {
 	indent--;
-	stream << ind << "</toplevel_block>";
+	stream << ind << "</toplevel_block>\n";
 }
 
 bool print_xml_tree::enter(block *l) {

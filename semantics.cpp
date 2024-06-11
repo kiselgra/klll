@@ -14,8 +14,10 @@ resolve_names::resolve_names() {
 	add("not");
 	add("eq");
 	add("*");
+	add("+");
 	add("1-");
 	add("1+");
+	add("display");
 #undef add
 };
 

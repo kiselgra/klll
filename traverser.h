@@ -118,3 +118,39 @@ public:
 	// where to record
 	bool enter(name *) override;
 };
+
+class interprete : public visitor {
+public:
+	struct value {
+		enum kind { INT } kind;
+		long integer;
+		value(int i) : integer(i), kind(INT) {}
+	};
+private:
+	std::vector<std::map<definition*, value>> bindings;
+	std::vector<std::vector<value>> value_stack;
+	value find_binding(definition *def);
+	void push_value(value v);
+
+public:
+	interprete();
+	bool enter(integer *) override;
+	bool enter(name *) override;
+	
+	bool enter(block *) override;
+	void leave(block *) override;
+
+	bool enter(list *) override;
+	void leave(list *) override;
+	
+	bool enter(var_definition *) override;
+	void leave(var_definition *) override;
+	bool enter(fun_definition *) override;
+	void leave(fun_definition *) override;
+	
+	bool enter(fun_call *) override;
+	void leave(fun_call *) override;
+
+	bool enter(branch *) override;
+	void leave(branch *) override;
+};

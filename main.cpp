@@ -36,6 +36,11 @@ int main(int argc, char **argv) {
 	tree->traverse(&rn);
 
 	tree->traverse(&pt);
+	
+	cout << endl << " - - - - - - - - - - - - " << endl;
+	cout << "interpreting program..." << endl;
+	interprete ip;
+	tree->traverse(&ip);
 
 	delete tree;
 }
