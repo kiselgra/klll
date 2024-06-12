@@ -15,6 +15,8 @@ resolve_names::resolve_names() {
 	add("eq");
 	add("*");
 	add("+");
+	add("-");
+	add("/");
 	add("1-");
 	add("1+");
 	add("display");

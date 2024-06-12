@@ -1,5 +1,8 @@
 #include "traverser.h"
+#include "syntax.h"
 #include <iostream>
+
+bool V = false;
 
 using std::cout, std::endl;
 
@@ -13,20 +16,35 @@ namespace built_in {
 		values.clear();
 		values.push_back(value::value_true());
 	}
-	void plus(std::vector<value> &values) {
-		long acc = values[0].integer;
-		for (int i = 1; i < values.size(); ++i)
-			acc += values[i].integer;
-		values.clear();
-		values.push_back(value(acc));
+	#define binary_int_cmp(OP, N) \
+	void N(std::vector<value> &values) { \
+		if (values.size() != 2) throw syntax_error("function < requires exactly 2 arguments"); \
+		if (values[0].kind != value::INT || values[1].kind != value::INT)  \
+			throw syntax_error("function < requires arguments to be integers"); \
+		values.clear(); \
+		if (values[0].integer OP values[1].integer) \
+			values.push_back(value::value_true()); \
+		else values.push_back(value::value_false()); \
 	}
-	void mult(std::vector<value> &values) {
-		long acc = values[0].integer;
-		for (int i = 1; i < values.size(); ++i)
-			acc *= values[i].integer;
-		values.clear();
-		values.push_back(value(acc));
+	binary_int_cmp(<,  less)
+	binary_int_cmp(<=, less_eq)
+	binary_int_cmp(>,  greater)
+	binary_int_cmp(>=, greater_eq)
+	binary_int_cmp(==, equal)
+	#undef binary_int_cmp
+	#define int_seq(OP, N) \
+	void N(std::vector<value> &values) { \
+		long acc = values[0].integer; \
+		for (int i = 1; i < values.size(); ++i) \
+			acc OP values[i].integer; \
+		values.clear(); \
+		values.push_back(acc); \
 	}
+	int_seq(+=, plus)
+	int_seq(-=, minus)
+	int_seq(*=, mult)
+	int_seq(/=, div)
+	#undef int_seq
 }
 // TODO add functions to bindings and resolve using those if not shadowed
 
@@ -35,6 +53,13 @@ interprete::interprete(std::map<std::string, builtin_function*> &builtins) {
 		{ "display", built_in::display },
 		{ "+", built_in::plus },
 		{ "*", built_in::mult },
+		{ "-", built_in::minus },
+		{ "/", built_in::div },
+		{ "=", built_in::equal },
+		{ "<", built_in::less },
+		{ ">", built_in::greater },
+		{ "<=", built_in::less_eq },
+		{ ">=", built_in::greater_eq },
 	};
 	bindings.push_back({});
 	for (auto [name, fn] : builtins)
@@ -42,6 +67,14 @@ interprete::interprete(std::map<std::string, builtin_function*> &builtins) {
 			add_binding(fn, actual->second);
 		else
 			std::cerr << "Warning: built-in function " << name << " not implemented" << endl;
+}
+
+void interprete::add_binding_frame() {
+	bindings.push_back({});
+}
+
+void interprete::drop_binding_frame() {
+	bindings.pop_back();
 }
 
 void interprete::add_binding(definition *def, value v) {
@@ -94,22 +127,21 @@ bool interprete::enter(name *n) {
 	return true;
 }
 
-bool interprete::enter(toplevel_block *b) {
-	return enter((block*)b);
+bool interprete::enter(block *b) {
+	return true;
 }
 
-void interprete::leave(toplevel_block *b) {
-	leave((block*)b);
+void interprete::leave(block *b) {
 }
 
-bool interprete::enter(block *) {
-	cout << "setup value frame for a block" << endl;
+bool interprete::enter(toplevel_block *) {
+	if (V) cout << "setup value frame for a TL block" << endl;
 	push_value_frame();
 	return true;
 }
 
-void interprete::leave(block *) {
-	cout << "drop value frame for a block" << endl;
+void interprete::leave(toplevel_block *) {
+	if (V) cout << "drop value frame for a TL block" << endl;
 	pop_value_frame();
 }
 
@@ -133,12 +165,12 @@ void interprete::leave(var_definition *def) {
 	value v = value_stack.back().back();
 	add_binding(def, v);
 	pop_value_frame();
-	cout << "var_def " << def->name << " has value " << v.integer << endl;
+	if (V) cout << "var_def " << def->name << " has value " << v.integer << endl;
 }
 
 bool interprete::enter(fun_definition *def) {
 	add_binding(def, def);
-	cout << "fun_def " << def->name << " entered" << endl;
+	if (V) cout << "fun_def " << def->name << " entered" << endl;
 	return false;
 }
 
@@ -148,7 +180,7 @@ void interprete::leave(fun_definition *) {
 
 bool interprete::enter(fun_call *c) {
 	push_value_frame();
-	cout << "setup value frame for call " << c->name->value << endl;
+	if (V) cout << "setup value frame for call " << c->name->value << endl;
 	return true;
 }
 
@@ -158,18 +190,40 @@ void interprete::leave(fun_call *c) {
 	value v = pop_first_value(); 
 	if (v.kind == value::BI)
 		v.bi(value_frame());
+	else if (v.kind == value::FUN) {
+		// bind parameters to arguments
+		if (value_frame().size() != v.fd->params.size())
+			throw syntax_error("Function " + v.fd->name + " needs " + std::to_string(v.fd->params.size()) + " arguments");
+		add_binding_frame();
+		for (int i = 0; i < v.fd->params.size(); ++i)
+			add_binding(v.fd->params[i], value_frame()[i]);
+		value_frame().clear();
+		v.fd->body->traverse(this);
+		// correctly handle last value in block
+		// correctly remove bindings
+		drop_binding_frame();
+	}
 	else
-		std::cerr << "Unsupported non-builtin call: " << c->name->value << endl;
+		throw syntax_error("Cannot call this");
 	value res = pop_value();
 	pop_value_frame();
-	cout << "drop value frame for call " << c->name->value << endl;
-	cout << "put result " << res.integer << " into outer frame" << endl;
+	if (V) cout << "drop value frame for call " << c->name->value << endl;
+	if (V) cout << "put result " << res.integer << " into outer frame" << endl;
 	push_value(res); // push value to surrounding frame (call might be inside a call, etc)
 }
 
 
-bool interprete::enter(branch *) {
-	return true;
+bool interprete::enter(branch *b) {
+	push_value_frame();
+	b->condition->traverse(this);
+	value v = pop_value();
+	pop_value_frame();
+	if (v.kind != value::BOOL) throw syntax_error("If expression requires boolean condition");
+	if (v.b)
+		b->true_case->traverse(this);
+	else
+		b->false_case->traverse(this);
+	return false;
 }
 
 void interprete::leave(branch *) {

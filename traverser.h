@@ -139,7 +139,6 @@ public:
 private:
 	std::vector<std::map<definition*, value>> bindings;
 	std::vector<std::vector<value>> value_stack;
-	value find_binding(definition *def);
 	void push_value_frame();
 	void pop_value_frame();
 	void push_value(value v);
@@ -147,7 +146,10 @@ private:
 	value pop_first_value();
 	std::vector<value>& value_frame();
 
+	void add_binding_frame();
+	void drop_binding_frame();
 	void add_binding(definition *def, value v);
+	value find_binding(definition *def);
 
 public:
 	interprete(std::map<std::string, builtin_function*> &builtins);

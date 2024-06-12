@@ -181,6 +181,14 @@ static node* nested_replacement(node *n) {
 				curr_node->elements[1] = curr_node->elements[2] = nullptr;
 				return replacement;
 			}
+			else if (head->value == "block") {
+				block *replacement = new block;
+				for (int i = 1; i < curr_node->elements.size(); ++i) {
+					replacement->subnodes.push_back(curr_node->elements[i]);
+					curr_node->elements[i] = nullptr;
+				}
+				return replacement;
+			}
 			// any other list-heads are function calls or semantic errors
 			else {
 				fun_call *replacement = new fun_call(head);
