@@ -117,28 +117,47 @@ public:
 	void leave(fun_definition *) override;
 	// where to record
 	bool enter(name *) override;
+
+	std::map<std::string, builtin_function*>& builtins() { return builtin_functions; }
 };
 
 class interprete : public visitor {
 public:
 	struct value {
-		enum kind { INT } kind;
-		long integer;
+		typedef void (*built_in)(std::vector<value> &);
+		enum kind { INT, BOOL, FUN, BI } kind;
+		long integer = 0;
+		fun_definition *fd = nullptr;
+		built_in bi = nullptr;
+		bool b = false;
 		value(int i) : integer(i), kind(INT) {}
+		value(fun_definition *fd) : fd(fd), kind(FUN) {}
+		value(built_in bi) : bi(bi), kind(BI) {}
+		static value value_true()  { value v = 0; v.b = true;  v.kind = value::BOOL; return v; }
+		static value value_false() { value v = 0; v.b = false; v.kind = value::BOOL; return v; }
 	};
 private:
 	std::vector<std::map<definition*, value>> bindings;
 	std::vector<std::vector<value>> value_stack;
 	value find_binding(definition *def);
+	void push_value_frame();
+	void pop_value_frame();
 	void push_value(value v);
+	value pop_value();
+	value pop_first_value();
+	std::vector<value>& value_frame();
+
+	void add_binding(definition *def, value v);
 
 public:
-	interprete();
+	interprete(std::map<std::string, builtin_function*> &builtins);
 	bool enter(integer *) override;
 	bool enter(name *) override;
 	
-	bool enter(block *) override;
-	void leave(block *) override;
+	bool enter(toplevel_block *) override;
+	void leave(toplevel_block *) override;
+	bool enter(block *)          override;
+	void leave(block *)          override;
 
 	bool enter(list *) override;
 	void leave(list *) override;
