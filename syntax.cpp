@@ -93,6 +93,8 @@ node* to_tree(const form &f) {
 		token t = f.value();
 		if (is_number(t))
 			return new integer(t);
+		else if (t.type() == token::STR)
+			return new string(t);
 		else
 			return new name(t);
 	}

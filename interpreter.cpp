@@ -10,9 +10,13 @@ namespace built_in {
 	using value = interprete::value;
 
 	void display(std::vector<value> &values) {
-		for (auto v : values)
-			cout << v.integer << " ";
-		cout << endl;
+		for (int i = 0; i < values.size(); ++i) {
+			auto v = values[i];
+			if      (v.kind == value::INT)  cout << v.integer;
+			else if (v.kind == value::BOOL) cout << (v.b ? std::string("true") : std::string("false"));
+			else if (v.kind == value::STR)  cout << v.str;
+			else throw syntax_error("Cannot print value of kind " + std::to_string((int)v.kind));
+		}
 		values.clear();
 		values.push_back(value::value_true());
 	}
@@ -48,7 +52,8 @@ namespace built_in {
 }
 // TODO add functions to bindings and resolve using those if not shadowed
 
-interprete::interprete(std::map<std::string, builtin_function*> &builtins) {
+interprete::interprete(std::map<std::string, builtin_function*> &builtins,
+					   std::map<std::string, var_definition*> &predefs) {
 	std::map<std::string, value::built_in> actual_builtins {
 		{ "display", built_in::display },
 		{ "+", built_in::plus },
@@ -67,6 +72,11 @@ interprete::interprete(std::map<std::string, builtin_function*> &builtins) {
 			add_binding(fn, actual->second);
 		else
 			std::cerr << "Warning: built-in function " << name << " not implemented" << endl;
+	// pre defined variables
+	for (auto [name, def] : predefs)
+		if      (auto *i = dynamic_cast<integer*>(def->value)) add_binding(def, value(i->value));
+		else if (auto *s = dynamic_cast<string*>(def->value))  add_binding(def, value(s->value));
+		else    throw std::logic_error("Cannot handle predefined value " + name);
 }
 
 void interprete::add_binding_frame() {
@@ -118,6 +128,11 @@ std::vector<interprete::value>& interprete::value_frame() {
 
 bool interprete::enter(integer *i) {
 	push_value(i->value);
+	return true;
+}
+
+bool interprete::enter(string *s) {
+	push_value(s->value);
 	return true;
 }
 

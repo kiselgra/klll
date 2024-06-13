@@ -15,6 +15,7 @@ public:
 	virtual void between_subs(node *, int at) {}
 
 	virtual bool enter(integer *n)        { return enter((node*)n); }
+	virtual bool enter(string *n)         { return enter((node*)n); }
 	virtual bool enter(name *n)           { return enter((node*)n); }
 
 	virtual bool enter(block *n)          { return enter((node*)n); }
@@ -96,6 +97,7 @@ public:
 class resolve_names : public visitor {
 	std::vector<definition*> definitions;
 	std::map<std::string, builtin_function*> builtin_functions;
+	std::map<std::string, var_definition*> builtin_values;
 public:
 	resolve_names();
 	~resolve_names();
@@ -106,7 +108,8 @@ public:
 	// where to record
 	bool enter(name *) override;
 
-	std::map<std::string, builtin_function*>& builtins() { return builtin_functions; }
+	std::map<std::string, builtin_function*>& builtins()    { return builtin_functions; }
+	std::map<std::string, var_definition*>&   pre_defined() { return builtin_values; }
 };
 
 
@@ -115,14 +118,16 @@ class interprete : public visitor {
 public:
 	struct value {
 		typedef void (*built_in)(std::vector<value> &);
-		enum kind { INT, BOOL, FUN, BI } kind;
+		enum kind { INT, BOOL, STR, FUN, BI } kind;
 		long integer = 0;
 		fun_definition *fd = nullptr;
 		built_in bi = nullptr;
 		bool b = false;
+		std::string str;
 		value(int i) : integer(i), kind(INT) {}
 		value(fun_definition *fd) : fd(fd), kind(FUN) {}
 		value(built_in bi) : bi(bi), kind(BI) {}
+		value(const std::string &s) : str(s), kind(STR) {}
 		static value value_true()  { value v = 0; v.b = true;  v.kind = value::BOOL; return v; }
 		static value value_false() { value v = 0; v.b = false; v.kind = value::BOOL; return v; }
 	};
@@ -142,8 +147,10 @@ private:
 	value find_binding(definition *def);
 
 public:
-	interprete(std::map<std::string, builtin_function*> &builtins);
+	interprete(std::map<std::string, builtin_function*> &builtins,
+			   std::map<std::string, var_definition*> &predefs);
 	bool enter(integer *) override;
+	bool enter(string *) override;
 	bool enter(name *) override;
 	
 	bool enter(toplevel_block *) override;

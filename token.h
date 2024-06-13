@@ -6,7 +6,7 @@
 
 class token {
 public:
-	enum kind { ID, P_OPEN, P_CLOSE };
+	enum kind { ID, STR, P_OPEN, P_CLOSE };
 private:
 	kind kind;
 	std::string identifier;
@@ -19,6 +19,11 @@ public:
 	}
 	static token close_paren(int line, int col) {
 		return token(P_CLOSE, line, col);
+	}
+	static token string(const std::string &str, int line, int col) {
+		token t(STR, line, col);
+		t.identifier = str;
+		return t;
 	}
 	enum kind type() const { return kind; }
 	const std::string& id() const { return identifier; }

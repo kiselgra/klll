@@ -8,7 +8,9 @@
 	1
 	(* n (fak (- n 1)))))
 
+(display "Testing simple recursion: ")
 (display (fak 5))
+(display endl)
 
 (define (fib n)
  (if (<= n 2)
@@ -16,19 +18,21 @@
   (+ (fib (- n 1))
      (fib (- n 2)))))
 
-(display (fib 1))
-(display (fib 2))
-(display (fib 3))
-(display (fib 4))
-(display (fib 5))
+(display "Testing manual fibs:" endl)
+(display (fib 1) endl)
+(display (fib 2) endl)
+(display (fib 3) endl)
+(display (fib 4) endl)
+(display (fib 5) endl)
 
 (define (loop i n)
+  (define x 0)
  (if (> i n)
   0
   (block
-   (display (fib i))
+   (display "Fibonacci number " i " is " (fib i) endl)
    (loop (+ i 1) n))))
 
-(display 111111)
+(display "Testing fibs in a loop" endl)
+(loop 1 12)
 
-(display (loop 1 12))

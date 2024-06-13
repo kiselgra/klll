@@ -47,6 +47,15 @@ struct integer : public literal {
 	void traverse(visitor *v) override;
 };
 
+struct string : public literal {
+	std::string value;
+	
+	string(const token &t) : literal(t), value(t.id()) {}
+	string(const std::string &value) : value(value) {}
+	
+	void traverse(visitor *v) override;
+};
+
 struct definition;
 
 struct name : public literal {

@@ -11,6 +11,10 @@ void integer::traverse(visitor *v) {
 	v->enter(this);
 }
 
+void string::traverse(visitor *v) {
+	v->enter(this);
+}
+
 void name::traverse(visitor *v) {
 	v->enter(this);
 }

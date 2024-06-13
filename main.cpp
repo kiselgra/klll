@@ -29,7 +29,7 @@ struct interpreter {
 		if (show_resolved)
 			add_pass(pp, "Tree with resolved names:");
 
-		add_pass(new interprete(rn->builtins()), "Interpreting program...");
+		add_pass(new interprete(rn->builtins(), rn->pre_defined()), "Interpreting program...");
 	}
 	void run(const std::vector<form> &forms) {
 		node *tree = to_tree(forms);

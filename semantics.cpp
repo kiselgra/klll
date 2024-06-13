@@ -21,10 +21,13 @@ resolve_names::resolve_names() {
 	add("1+");
 	add("display");
 #undef add
+	builtin_values["endl"] = new var_definition("endl", new string("\n"));
 };
 
 resolve_names::~resolve_names() {
 	for (auto [k,v] : builtin_functions)
+		delete v;
+	for (auto [k,v] : builtin_values)
 		delete v;
 }
 
@@ -51,6 +54,10 @@ bool resolve_names::enter(name *n) {
 			return true;
 		}
 	if (auto found = builtin_functions.find(n->value); found != builtin_functions.end()) {
+		n->definition = found->second;
+		return true;
+	}
+	if (auto found = builtin_values.find(n->value); found != builtin_values.end()) {
 		n->definition = found->second;
 		return true;
 	}
