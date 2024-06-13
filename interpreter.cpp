@@ -198,6 +198,8 @@ void interprete::leave(fun_call *c) {
 		for (int i = 0; i < v.fd->params.size(); ++i)
 			add_binding(v.fd->params[i], value_frame()[i]);
 		value_frame().clear();
+		// here we deviate from the regular traversal logic:
+		// inside the fun-call we start traversing the called function's body
 		v.fd->body->traverse(this);
 		// correctly handle last value in block
 		// correctly remove bindings
