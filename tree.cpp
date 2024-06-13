@@ -15,6 +15,10 @@ void string::traverse(visitor *v) {
 	v->enter(this);
 }
 
+void boolean::traverse(visitor *v) {
+	v->enter(this);
+}
+
 void name::traverse(visitor *v) {
 	v->enter(this);
 }

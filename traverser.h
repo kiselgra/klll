@@ -16,6 +16,7 @@ public:
 
 	virtual bool enter(integer *n)        { return enter((node*)n); }
 	virtual bool enter(string *n)         { return enter((node*)n); }
+	virtual bool enter(boolean *n)        { return enter((node*)n); }
 	virtual bool enter(name *n)           { return enter((node*)n); }
 
 	virtual bool enter(block *n)          { return enter((node*)n); }
@@ -150,8 +151,9 @@ public:
 	interprete(std::map<std::string, builtin_function*> &builtins,
 			   std::map<std::string, var_definition*> &predefs);
 	bool enter(integer *) override;
-	bool enter(string *) override;
-	bool enter(name *) override;
+	bool enter(string *)  override;
+	bool enter(boolean *) override;
+	bool enter(name *)    override;
 	
 	bool enter(toplevel_block *) override;
 	void leave(toplevel_block *) override;

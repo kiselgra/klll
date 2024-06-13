@@ -136,6 +136,12 @@ bool interprete::enter(string *s) {
 	return true;
 }
 
+bool interprete::enter(boolean *b) {
+	if (b->value) push_value(value::value_true());
+	else          push_value(value::value_false());
+	return true;
+}
+
 bool interprete::enter(name *n) {
 	value v = find_binding(n->definition.ptr);
 	push_value(v);

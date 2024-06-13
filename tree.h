@@ -56,6 +56,15 @@ struct string : public literal {
 	void traverse(visitor *v) override;
 };
 
+struct boolean : public literal {
+	bool value;
+	
+	boolean(const token &t) : literal(t), value(t.boolean()) {}
+	boolean(bool b) : value(b) {}
+	
+	void traverse(visitor *v) override;
+};
+
 struct definition;
 
 struct name : public literal {

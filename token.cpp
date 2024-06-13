@@ -52,7 +52,12 @@ vector<token> tokenize(std::istream &source) {
 				}
 				else
 					accum += c;
-			tokens.push_back(token(accum, line, col));
+			if (accum == "true")
+				tokens.push_back(token(true, line, col));
+			else if (accum == "false")
+				tokens.push_back(token(false, line, col));
+			else
+				tokens.push_back(token(accum, line, col));
 			col += accum.length();
 		}
 		else if (c == '\n') line++, col=1;

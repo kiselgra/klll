@@ -26,7 +26,6 @@
 (display (fib 5) endl)
 
 (define (loop i n)
-  (define x 0)
  (if (> i n)
   0
   (block
@@ -35,4 +34,6 @@
 
 (display "Testing fibs in a loop" endl)
 (loop 1 12)
+
+(display "This is " true)
 
