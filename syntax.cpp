@@ -27,7 +27,7 @@ std::ostream& operator<<(std::ostream &out, const form &f) {
 form parse(const vector<token> &tokenstream, int &pos) {
 	::form form;
 	while (pos < tokenstream.size()) {
-		std::cout << "---> " << tokenstream[pos] << std::endl;
+		// std::cout << "---> " << tokenstream[pos] << std::endl;
 		if (tokenstream[pos].type() == token::P_OPEN)
 			form.add(parse(tokenstream, ++pos));
 		else if (tokenstream[pos].type() == token::P_CLOSE)

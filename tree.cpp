@@ -91,51 +91,6 @@ void branch::traverse(visitor *v) {
  * Tree debug printer
  *
  */
-
-bool print_tree::enter(integer *i) {
-	stream << i->value;
-	return true;
-}
-
-bool print_tree::enter(name *n) {
-	stream << n->value;
-	return true;
-}
-
-bool print_tree::enter(list *l) {
-	stream << "\n";
-	for (int i = 0; i < indent; ++i)
-		stream << "  ";
-	stream << "(";
-	indent++;
-	return true;
-}
-
-void print_tree::between_subs(node *n, int at) {
-	stream << " ";
-}
-
-void print_tree::leave(list *l) {
-	stream << ")";
-	indent--;
-}
-
-bool print_tree::enter(var_definition *d) {
-	stream << "(DEFINE ";
-	indent++;
-	return true;
-}
-
-void print_tree::leave(var_definition *d) {
-	stream << ")\n";
-	indent--;
-}
-
-
-/* 
- * Tree debug printer
- *
- */
 	
 std::ostream& operator<<(std::ostream &out, print_xml_tree::indent_manip im) {
 	out << "\n";
@@ -162,7 +117,7 @@ bool print_xml_tree::enter(toplevel_block *l) {
 
 void print_xml_tree::leave(toplevel_block *l) {
 	indent--;
-	stream << ind << "</toplevel_block>\n";
+	stream << ind << "</toplevel_block>\n\n";
 }
 
 bool print_xml_tree::enter(block *l) {

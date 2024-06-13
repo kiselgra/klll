@@ -5,6 +5,8 @@
 #include <iostream>
 #include <map>
 
+
+
 class visitor {
 public:
 	virtual ~visitor() {}
@@ -35,25 +37,7 @@ public:
 	virtual void leave(branch *n)         {}
 };
 
-class print_tree : public visitor {
-	std::ostream &stream;
-	int indent = 0;
-public:
-	print_tree(std::ostream &stream) : stream(stream) {
-	}
-	~print_tree() {}
-	
-	void between_subs(node *n, int at) override;
 
-	bool enter(integer *) override;
-	bool enter(name *)    override;
-
-	bool enter(list *) override;
-	void leave(list *) override;
-	
-	bool enter(var_definition *) override;
-	void leave(var_definition *) override;
-};
 
 class print_xml_tree : public visitor {
 	std::ostream &stream;
@@ -91,6 +75,8 @@ public:
 	void leave(branch *) override;
 };
 
+
+
 class find_built_ins : public visitor {
 public:
 // 	bool enter(integer *) override {}
@@ -104,6 +90,8 @@ public:
 	bool enter(fun_call *)        override;
 	void between_subs(node *, int at)  override {}
 };
+
+
 
 class resolve_names : public visitor {
 	std::vector<definition*> definitions;
@@ -120,6 +108,8 @@ public:
 
 	std::map<std::string, builtin_function*>& builtins() { return builtin_functions; }
 };
+
+
 
 class interprete : public visitor {
 public:
