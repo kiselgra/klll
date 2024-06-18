@@ -112,6 +112,16 @@ bool print_xml_tree::enter(integer *i) {
 	return true;
 }
 
+bool print_xml_tree::enter(string *s) {
+	stream << ind << "<string value=" << s->value << "/>";
+	return true;
+}
+
+bool print_xml_tree::enter(boolean *b) {
+	stream << ind << "<boolean value=" << std::boolalpha << b->value << "/>";
+	return true;
+}
+
 bool print_xml_tree::enter(name *n) {
 	stream << ind << "<name value=" << n->value << "/>";
 	return true;

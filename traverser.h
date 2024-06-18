@@ -55,6 +55,8 @@ public:
 	friend std::ostream& operator<<(std::ostream &out, indent_manip i);
 	
 	bool enter(integer *) override;
+	bool enter(string *)  override;
+	bool enter(boolean *) override;
 	bool enter(name *)    override;
 
 	bool enter(toplevel_block *)  override;
