@@ -18,18 +18,21 @@ struct interpreter {
 	}
 	interpreter() {
 		auto *pp = new print_xml_tree(cout);
+		bool need_pp = false;
 		if (show_parsed)
-			add_pass(pp, "Tree as parsed from tokenstream:");
+			add_pass(pp, "Tree as parsed from tokenstream:"), need_pp = true;
 		
 		add_pass(new find_built_ins, "Replacing lists with built-in forms...");
 		if (show_replaced)
-			add_pass(pp, "Tree with language primitives inserted:");
+			add_pass(pp, "Tree with language primitives inserted:"), need_pp = true;
 
 		auto *rn = add_pass(new resolve_names, "Resolving names, aka linking names to their definitions...");
 		if (show_resolved)
-			add_pass(pp, "Tree with resolved names:");
+			add_pass(pp, "Tree with resolved names:"), need_pp = true;
 
 		add_pass(new interprete(rn->builtins(), rn->pre_defined()), "Interpreting program...");
+
+		if (!need_pp) delete pp;
 	}
 	void run(const std::vector<form> &forms) {
 		node *tree = to_tree(forms);
