@@ -174,9 +174,9 @@ static node* nested_replacement(node *n) {
 			if (head->value == "if") { // TODO: these can be in blocks and lists
 				if (curr_node->elements.size() > 4)
 					throw syntax_error("if-conditional requires consequent (and optionally alternative) expression, nothing more. "
-									   "Did you mean to group one of the two?");
+									   "Did you mean to group one of the two?", *head->tok);
 				if (curr_node->elements.size() < 3)
-					throw syntax_error("if-conditional requires at least a consequent");
+					throw syntax_error("if-conditional requires at least a consequent", *head->tok);
 				branch *replacement = new branch(curr_node->elements[1], curr_node->elements[2]);
 				if (curr_node->elements.size() == 4) {
 					replacement->false_case = curr_node->elements[3];
@@ -193,6 +193,8 @@ static node* nested_replacement(node *n) {
 				}
 				return replacement;
 			}
+			else if (node *r = toplevel_replacement(curr_node); r)
+				return r;
 			// any other list-heads are function calls or semantic errors
 			else {
 				fun_call *replacement = new fun_call(head);

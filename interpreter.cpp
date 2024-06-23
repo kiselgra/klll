@@ -244,8 +244,10 @@ bool interprete::enter(branch *b) {
 	if (v.kind != value::BOOL) throw syntax_error("If expression requires boolean condition");
 	if (v.b)
 		b->true_case->traverse(this);
-	else
+	else if (b->false_case)
 		b->false_case->traverse(this);
+	else
+		push_value(value::value_false());
 	return false;
 }
 

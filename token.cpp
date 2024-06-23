@@ -43,6 +43,10 @@ vector<token> tokenize(std::istream &source) {
 				}
 			tokens.push_back(token::string(accum, start_line, start_col));
 		}
+		else if (c == ';') { // comments
+			while (source.get(c) && c != '\n') ;
+			source.putback(c);
+		}
 		else if (isgraph(c)) {
 			string accum(1, c);
 			while (source.get(c))

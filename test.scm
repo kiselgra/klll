@@ -35,5 +35,17 @@
 (display "Testing fibs in a loop" endl)
 (loop 1 12)
 
+;; a nicer loop variant using a nested function:
+(define (print-fibs n)
+  (define (loop i n)
+	(if (> i n)
+	    true
+		(block
+		  (display "Fibonacci number " i " is " (fib i) endl)
+		  (loop (+ i 1) n))))
+  (loop 1 n))
+
+(print-fibs 10)
+
 (display "This is " true)
 
