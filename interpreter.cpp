@@ -34,7 +34,6 @@ namespace built_in {
 	binary_int_cmp(<=, less_eq)
 	binary_int_cmp(>,  greater)
 	binary_int_cmp(>=, greater_eq)
-	binary_int_cmp(==, equal)
 	#undef binary_int_cmp
 	#define int_seq(OP, N) \
 	void N(std::vector<value> &values) { \
@@ -49,8 +48,36 @@ namespace built_in {
 	int_seq(*=, mult)
 	int_seq(/=, div)
 	#undef int_seq
+	void equal(std::vector<value> &values) {
+		if (values.size() != 2) throw syntax_error("equal-predicate requries exactly 2 arguments");
+		if (values[0].kind != values[1].kind) throw syntax_error("equal-predicate needs matching types"); // this could also be interpreted as "false"
+		value t = value::value_true();
+		value f = value::value_false();
+		value a = values[0], b = values[1];
+		values.clear();
+		if (a.kind == value::INT)
+			if (a.integer == b.integer) values.push_back(t);
+			else                        values.push_back(f);
+		else if (a.kind == value::BOOL)
+			if (a.b == b.b) values.push_back(t);
+			else            values.push_back(f);
+		else if (a.kind == value::STR)
+			if (a.str == b.str) values.push_back(t);
+			else                values.push_back(f);
+		// this is some inofficial start of supporting higher order functions
+		else if (a.kind == value::FUN)
+			if (a.fd == b.fd) values.push_back(t);
+			else              values.push_back(f);
+		else if (a.kind == value::BI)
+			if (a.bi == b.bi) values.push_back(t);
+			else              values.push_back(f);
+	}
+	void not_bool(std::vector<value> &values) {
+		if (values.size() != 1) throw syntax_error("not operator requries exactly 1 argument");
+		if (values[0].kind != value::BOOL) throw syntax_error("not operator only works on boolean arguments");
+		values[0].b = !values[0].b;
+	}
 }
-// TODO add functions to bindings and resolve using those if not shadowed
 
 interprete::interprete(std::map<std::string, builtin_function*> &builtins,
 					   std::map<std::string, var_definition*> &predefs) {
@@ -65,6 +92,8 @@ interprete::interprete(std::map<std::string, builtin_function*> &builtins,
 		{ ">", built_in::greater },
 		{ "<=", built_in::less_eq },
 		{ ">=", built_in::greater_eq },
+		{ "eq", built_in::equal },
+		{ "not", built_in::not_bool },
 	};
 	bindings.push_back({});
 	for (auto [name, fn] : builtins)

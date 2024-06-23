@@ -6,20 +6,18 @@
 
 resolve_names::resolve_names() {
 #define add(X) builtin_functions[X] = new builtin_function(X)
-	add("<=");
-	add("<");
-	add(">");
-	add(">=");
-	add("=");
-	add("not");
-	add("eq");
-	add("*");
+	add("display");
 	add("+");
+	add("*");
 	add("-");
 	add("/");
-	add("1-");
-	add("1+");
-	add("display");
+	add("=");
+	add("<");
+	add(">");
+	add("<=");
+	add(">=");
+	add("not");
+	add("eq");
 #undef add
 	builtin_values["endl"] = new var_definition("endl", new string("\n"));
 };
